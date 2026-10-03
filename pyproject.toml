@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-canarytrap-phase1"
+version = "0.1.0"
+description = "Educational Phase 1 prototype for MCP-CanaryTrap"
+requires-python = ">=3.10"
+dependencies = ["mcp[cli]>=2,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-anyio>=0.0.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
