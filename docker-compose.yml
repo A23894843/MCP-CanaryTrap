@@ -1,0 +1,11 @@
+services:
+  canarytrap:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      CANARYTRAP_DB: /app/data/canarytrap.sqlite3
+    volumes:
+      - canarytrap_data:/app/data
+volumes:
+  canarytrap_data:

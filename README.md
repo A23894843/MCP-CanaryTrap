@@ -1,45 +1,94 @@
-# MCP-CanaryTrap — Phase 1
+# MCP-CanaryTrap
 
-Educational implementation of Phase 1 from the project synopsis: learn MCP protocol/tool/resource schema and create the initial decoy taxonomy + placement design.
+**A deterministic decoy-access detection prototype for Model Context Protocol (MCP) server testing.**
 
-## Included
-- Small MCP server: tools, resources, prompt
-- MCP client over stdio
-- Phase-1 decoy taxonomy and session-derived placement model
-- Tests
-- Study notes and viva questions
+> Academic demonstration only. The current harness simulates MCP-like interactions. It does not transparently monitor arbitrary third-party MCP servers and is not a production security product.
 
-This is **not the final CanaryTrap system**. The sandbox harness, interaction logger, real decoy injection, verdict engine, dashboard and evaluation belong to later phases.
+## What it demonstrates
+- MCP SDK learning server/client with tools, resources, a resource template and a prompt.
+- Three fictional decoy categories: high-privilege tool, sensitive-data asset and high-value record.
+- Reproducible per-session decoy placement scaffold.
+- Controlled benign and overreaching scenarios.
+- Timestamped interaction events persisted in SQLite.
+- Deterministic verdict: `CLEAN` with no recorded decoy access, `FLAGGED` with one or more decoy accesses.
+- Evidence event IDs, FastAPI reporting endpoints and a browser dashboard.
+- Automated regression tests and presentation documentation.
 
-## Setup
-Python 3.10+.
+## Quick start
 
-```text
-python -m venv .venv
-# Windows
-.venv\\Scripts\\activate
-# Linux/macOS
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+python -m pytest -v
 ```
 
-Run the learning client:
+Run the command-line demo:
+
+```bash
+python -m mcp_canarytrap.demo --scenario both
+```
+
+Run the dashboard:
+
+```bash
+python -m mcp_canarytrap.api
+```
+
+Open `http://127.0.0.1:8000`; API documentation is at `http://127.0.0.1:8000/docs`.
+
+## Project map
 
 ```text
-python -m mcp_canarytrap.client
+src/mcp_canarytrap/
+├── server.py          # MCP SDK learning server
+├── client.py          # MCP SDK learning client
+├── phase1_design.py   # Decoy taxonomy and placement
+├── events.py          # Interaction event model
+├── harness.py         # Controlled scenario execution
+├── verdict.py         # Deterministic CLEAN/FLAGGED policy
+├── storage.py         # SQLite persistence
+├── demo.py            # CLI demo
+├── api.py             # FastAPI endpoints
+└── templates/index.html
+                       # Browser dashboard
+
+tests/
+├── test_phase1.py
+└── test_detection_pipeline.py
+
+docs/                  # Setup, architecture, code walkthrough, test plan,
+                       # threat model, limitations, sources, viva and handoff
 ```
 
-Run tests:
+## Demo expectations
+| Scenario | Expected verdict | Evidence |
+|---|---|---|
+| `benign` | `CLEAN` | 0 decoy event IDs |
+| `overreaching` | `FLAGGED` | 3 decoy event IDs |
 
-```text
-pytest
+These are outcomes of the scripted simulation, not measured real-world detection rates.
+
+## Documentation order
+1. `docs/00-project-overview.md`
+2. `docs/01-setup-and-run.md`
+3. `docs/02-architecture.md`
+4. `docs/03-code-walkthrough.md`
+5. `docs/04-test-plan-and-results.md`
+6. `docs/05-threat-model-and-safety.md`
+7. `docs/06-limitations-and-real-integration.md`
+8. `docs/07-viva-and-demo-script.md`
+9. `docs/08-sources.md`
+10. `docs/09-team-handoff.md`
+
+## Docker
+
+```bash
+docker compose up --build
 ```
 
-Study in order:
-1. docs/01-mcp-fundamentals.md
-2. docs/02-protocol-flow.md
-3. docs/03-phase1-decoy-design.md
-4. docs/04-phase1-exercises.md
-5. docs/05-phase1-viva.md
+The service is bound to localhost. The container persists its SQLite data in a named volume.
 
-Do not submit this as the final project. Modify it and understand every component.
+## Important research limitation
+The demo harness generates controlled events internally. The MCP SDK example server/client are real local MCP demonstrations but are not yet wired to the harness as a live traffic observer. A transport-aware adapter/proxy, actual sandbox isolation and independent evaluation corpus are needed for a stronger research claim. See `docs/06-limitations-and-real-integration.md`.

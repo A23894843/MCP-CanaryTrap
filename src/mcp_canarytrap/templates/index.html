@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MCP-CanaryTrap | Research Dashboard</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+    body { margin: 0; background: #0b1020; color: #e8edf7; }
+    header { padding: 1.5rem 5vw; background: #131b31; border-bottom: 1px solid #293652; }
+    main { max-width: 1100px; margin: auto; padding: 1.5rem; }
+    h1 { margin: 0 0 .35rem; } .muted { color: #a8b4cb; }
+    .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin: 1rem 0; }
+    button { padding: .7rem 1rem; border: 0; border-radius: .55rem; cursor: pointer; font-weight: 700; }
+    button:hover { filter: brightness(1.12); } .benign { background: #91e5b1; } .attack { background: #ff9b9b; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 1rem; }
+    .card { background: #131b31; border: 1px solid #293652; border-radius: .8rem; padding: 1rem; overflow-wrap: anywhere; }
+    .status { font-size: 1.4rem; font-weight: 800; } .clean { color: #91e5b1; } .flagged { color: #ff9b9b; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; } th,td { padding: .65rem; border-bottom: 1px solid #293652; text-align: left; }
+    code,pre { background: #080c17; border-radius: .35rem; padding: .25rem; } pre { padding: 1rem; overflow: auto; }
+    @media (max-width: 600px) { table { font-size: .8rem; } }
+  </style>
+</head>
+<body>
+<header><h1>MCP-CanaryTrap</h1><div class="muted">Deterministic decoy-access detection · local research prototype</div></header>
+<main>
+  <p>This dashboard runs controlled fictional scenarios. A decoy touch produces a deterministic <b>FLAGGED</b> verdict; no decoy touch produces <b>CLEAN</b> within the recorded test session.</p>
+  <div class="actions"><button class="benign" onclick="runScenario('benign')">Run benign scenario</button><button class="attack" onclick="runScenario('overreaching')">Run overreaching scenario</button><button onclick="refreshAll()">Refresh data</button></div>
+  <div class="cards"><section class="card"><div class="muted">Sessions stored</div><div id="sessionCount" class="status">—</div></section><section class="card"><div class="muted">Events stored</div><div id="eventCount" class="status">—</div></section><section class="card"><div class="muted">Latest verdict</div><div id="latestStatus" class="status">—</div><div id="latestReason" class="muted"></div></section></div>
+  <h2>Recent sessions</h2><div class="card"><table><thead><tr><th>Session</th><th>Scenario</th><th>Status</th><th>Summary</th></tr></thead><tbody id="sessionsBody"><tr><td colspan="4">Loading…</td></tr></tbody></table></div>
+  <h2>Recent interaction events</h2><div class="card"><table><thead><tr><th>Time</th><th>Operation</th><th>Target</th><th>Decoy?</th></tr></thead><tbody id="eventsBody"><tr><td colspan="4">Loading…</td></tr></tbody></table></div>
+  <h2>Last run evidence</h2><pre id="evidence">No run yet.</pre>
+  <p class="muted">Research limitation: the current harness simulates observed operations. It does not intercept arbitrary third-party MCP servers. Read the limitations document before presenting claims.</p>
+</main>
+<script>
+async function refreshAll() {
+  const [sessionsResponse, eventsResponse] = await Promise.all([fetch('/api/sessions'), fetch('/api/events')]);
+  const sessions = await sessionsResponse.json(); const events = await eventsResponse.json();
+  document.getElementById('sessionCount').textContent = sessions.length;
+  document.getElementById('eventCount').textContent = events.length;
+  const latest = sessions[0]; const statusNode = document.getElementById('latestStatus');
+  statusNode.textContent = latest ? latest.status : '—'; statusNode.className = 'status ' + (latest?.status === 'FLAGGED' ? 'flagged' : 'clean');
+  document.getElementById('latestReason').textContent = latest?.summary || '';
+  document.getElementById('sessionsBody').innerHTML = sessions.map(s => `<tr><td>${escapeHtml(s.session_id)}</td><td>${escapeHtml(s.scenario)}</td><td class="${s.status === 'FLAGGED' ? 'flagged' : 'clean'}">${escapeHtml(s.status)}</td><td>${escapeHtml(s.summary || '')}</td></tr>`).join('') || '<tr><td colspan="4">No sessions yet.</td></tr>';
+  document.getElementById('eventsBody').innerHTML = events.map(e => `<tr><td>${escapeHtml(e.timestamp)}</td><td>${escapeHtml(e.operation)}</td><td>${escapeHtml(e.target)}</td><td>${e.is_decoy ? 'YES' : 'NO'}</td></tr>`).join('') || '<tr><td colspan="4">No events yet.</td></tr>';
+}
+function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function runScenario(scenario) {
+  const response = await fetch('/api/demo/' + scenario, {method:'POST'}); const result = await response.json();
+  document.getElementById('evidence').textContent = JSON.stringify(result, null, 2); await refreshAll();
+}
+refreshAll();
+</script>
+</body>
+</html>
