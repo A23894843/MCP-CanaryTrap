@@ -1,11 +1,32 @@
 services:
   canarytrap:
     build: .
+    env_file:
+      - .env
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${PORT:-8000}:8000"
     environment:
+      APP_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8000
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:?Set DASHBOARD_USERNAME in .env}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:?Set DASHBOARD_PASSWORD in .env}
       CANARYTRAP_DB: /app/data/canarytrap.sqlite3
+      CANARYTRAP_HTTP_UPSTREAMS: ${CANARYTRAP_HTTP_UPSTREAMS:-}
+      CANARYTRAP_UPSTREAM_TIMEOUT: ${CANARYTRAP_UPSTREAM_TIMEOUT:-60}
+      CANARYTRAP_RBAC_KEYS: ${CANARYTRAP_RBAC_KEYS:-}
+      CANARYTRAP_DEFAULT_TENANT: ${CANARYTRAP_DEFAULT_TENANT:-default}
+      CANARYTRAP_DEFAULT_POLICY_ACTION: ${CANARYTRAP_DEFAULT_POLICY_ACTION:-allow}
+      CANARYTRAP_ALLOWED_UPSTREAM_HOSTS: ${CANARYTRAP_ALLOWED_UPSTREAM_HOSTS:-}
+      CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS: ${CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS:-false}
+      CANARYTRAP_WEBHOOK_URL: ${CANARYTRAP_WEBHOOK_URL:-}
     volumes:
       - canarytrap_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 volumes:
   canarytrap_data:
