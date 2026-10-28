@@ -29,7 +29,7 @@ class Store:
                 CREATE TABLE IF NOT EXISTS sessions (
                     session_id TEXT PRIMARY KEY, scenario TEXT NOT NULL,
                     created_at TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'RUNNING',
-                    summary TEXT NOT NULL DEFAULT ''
+                    summary TEXT NOT NULL DEFAULT '', tenant TEXT NOT NULL DEFAULT 'default'
                 );
                 CREATE TABLE IF NOT EXISTS events (
                     event_id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
@@ -44,13 +44,26 @@ class Store:
                     evaluated_at TEXT NOT NULL,
                     FOREIGN KEY(session_id) REFERENCES sessions(session_id)
                 );
+                CREATE TABLE IF NOT EXISTS gateway_connections (
+                    connection_id TEXT PRIMARY KEY,
+                    url TEXT NOT NULL,
+                    token_env TEXT NOT NULL DEFAULT '',
+                    decoy_tools_json TEXT NOT NULL DEFAULT '[]',
+                    decoy_resources_json TEXT NOT NULL DEFAULT '[]',
+                    decoy_prompts_json TEXT NOT NULL DEFAULT '[]',
+                    updated_at TEXT NOT NULL
+                );
             """)
+            # Backward-compatible migration for databases created before tenant scoping.
+            session_columns = {row["name"] for row in db.execute("PRAGMA table_info(sessions)").fetchall()}
+            if "tenant" not in session_columns:
+                db.execute("ALTER TABLE sessions ADD COLUMN tenant TEXT NOT NULL DEFAULT 'default'")
 
-    def create_session(self, session_id: str, scenario: str, created_at: str) -> None:
-        """Register a session before storing its events."""
+    def create_session(self, session_id: str, scenario: str, created_at: str, tenant: str = "default") -> None:
+        """Register a session before storing its events, scoped to a tenant."""
         with self.connect() as db:
-            db.execute("INSERT INTO sessions(session_id, scenario, created_at) VALUES(?,?,?)",
-                       (session_id, scenario, created_at))
+            db.execute("INSERT INTO sessions(session_id, scenario, created_at, tenant) VALUES(?,?,?,?)",
+                       (session_id, scenario, created_at, tenant))
 
     def add_event(self, event: InteractionEvent) -> None:
         """Persist one interaction event."""
@@ -69,12 +82,15 @@ class Store:
             db.execute("UPDATE sessions SET status=?, summary=? WHERE session_id=?",
                        (verdict.status, verdict.reason, verdict.session_id))
 
-    def list_sessions(self) -> list[dict[str, Any]]:
-        """Return sessions newest first with verdict fields where available."""
+    def list_sessions(self, tenant: str | None = None) -> list[dict[str, Any]]:
+        """Return sessions newest first, optionally restricted to one tenant."""
         with self.connect() as db:
-            rows = db.execute("""SELECT s.*, v.reason, v.evidence_json, v.evaluated_at
-                FROM sessions s LEFT JOIN verdicts v USING(session_id)
-                ORDER BY s.created_at DESC""").fetchall()
+            query = """SELECT s.*, v.reason, v.evidence_json, v.evaluated_at
+                FROM sessions s LEFT JOIN verdicts v USING(session_id)"""
+            if tenant is not None:
+                rows = db.execute(query + " WHERE s.tenant=? ORDER BY s.created_at DESC", (tenant,)).fetchall()
+            else:
+                rows = db.execute(query + " ORDER BY s.created_at DESC").fetchall()
         result = []
         for row in rows:
             item = dict(row)
@@ -82,15 +98,58 @@ class Store:
             result.append(item)
         return result
 
-    def list_events(self, session_id: str | None = None) -> list[dict[str, Any]]:
-        """Return recorded events, optionally filtered to one session."""
+    def list_events(self, session_id: str | None = None, tenant: str | None = None) -> list[dict[str, Any]]:
+        """Return recent events, optionally filtered by session and tenant."""
         with self.connect() as db:
+            query = "SELECT e.* FROM events e JOIN sessions s USING(session_id)"
+            clauses, params = [], []
             if session_id:
-                rows = db.execute("SELECT * FROM events WHERE session_id=? ORDER BY timestamp", (session_id,)).fetchall()
-            else:
-                rows = db.execute("SELECT * FROM events ORDER BY timestamp DESC LIMIT 500").fetchall()
+                clauses.append("e.session_id=?"); params.append(session_id)
+            if tenant is not None:
+                clauses.append("s.tenant=?"); params.append(tenant)
+            if clauses:
+                query += " WHERE " + " AND ".join(clauses)
+            query += " ORDER BY e.timestamp" + ("" if session_id else " DESC LIMIT 500")
+            rows = db.execute(query, tuple(params)).fetchall()
         return [dict(row) | {"is_decoy": bool(row["is_decoy"])} for row in rows]
 
-    def get_session(self, session_id: str) -> dict[str, Any] | None:
-        """Return one session summary, or None when unknown."""
-        return next((s for s in self.list_sessions() if s["session_id"] == session_id), None)
+    def get_session(self, session_id: str, tenant: str | None = None) -> dict[str, Any] | None:
+        """Return one session summary, optionally restricted to its tenant."""
+        return next((s for s in self.list_sessions(tenant=tenant) if s["session_id"] == session_id), None)
+
+    def save_gateway_connection(self, connection: dict[str, Any]) -> None:
+        """Persist non-secret HTTP upstream configuration; secret values are never stored."""
+        from datetime import datetime, timezone
+        with self.connect() as db:
+            db.execute("""INSERT INTO gateway_connections
+                (connection_id,url,token_env,decoy_tools_json,decoy_resources_json,decoy_prompts_json,updated_at)
+                VALUES(?,?,?,?,?,?,?) ON CONFLICT(connection_id) DO UPDATE SET
+                url=excluded.url, token_env=excluded.token_env,
+                decoy_tools_json=excluded.decoy_tools_json,
+                decoy_resources_json=excluded.decoy_resources_json,
+                decoy_prompts_json=excluded.decoy_prompts_json, updated_at=excluded.updated_at""",
+                (connection["id"], connection["url"], connection.get("token_env", ""),
+                 json.dumps(connection.get("decoy_tools", [])),
+                 json.dumps(connection.get("decoy_resources", [])),
+                 json.dumps(connection.get("decoy_prompts", [])),
+                 datetime.now(timezone.utc).isoformat()))
+
+    def list_gateway_connections(self) -> dict[str, dict[str, Any]]:
+        """Load saved non-secret HTTP upstream definitions keyed by connection ID."""
+        with self.connect() as db:
+            rows = db.execute("SELECT * FROM gateway_connections ORDER BY connection_id").fetchall()
+        result: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            result[row["connection_id"]] = {
+                "url": row["url"], "token_env": row["token_env"],
+                "decoy_tools": json.loads(row["decoy_tools_json"]),
+                "decoy_resources": json.loads(row["decoy_resources_json"]),
+                "decoy_prompts": json.loads(row["decoy_prompts_json"]),
+            }
+        return result
+
+    def delete_gateway_connection(self, connection_id: str) -> bool:
+        """Delete a dashboard-saved connection; environment-defined entries are unaffected."""
+        with self.connect() as db:
+            cursor = db.execute("DELETE FROM gateway_connections WHERE connection_id=?", (connection_id,))
+            return cursor.rowcount > 0

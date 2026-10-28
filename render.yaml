@@ -1,0 +1,37 @@
+# Render Blueprint. Review pricing and persistent-disk charges before deploying.
+services:
+  - type: web
+    name: mcp-canarytrap
+    runtime: python
+    plan: starter
+    buildCommand: pip install --upgrade pip && pip install -e ".[dev]"
+    startCommand: uvicorn mcp_canarytrap.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: canarytrap-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: CANARYTRAP_DB
+        value: /var/data/canarytrap.sqlite3
+      - key: DASHBOARD_USERNAME
+        sync: false
+      - key: DASHBOARD_PASSWORD
+        sync: false
+      - key: CANARYTRAP_RBAC_KEYS
+        sync: false
+      - key: CANARYTRAP_DEFAULT_TENANT
+        value: default
+      - key: CANARYTRAP_DEFAULT_POLICY_ACTION
+        value: allow
+      - key: CANARYTRAP_ALLOWED_UPSTREAM_HOSTS
+        sync: false
+      - key: CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS
+        value: "false"
+      - key: CANARYTRAP_WEBHOOK_URL
+        sync: false
