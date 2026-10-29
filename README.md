@@ -1,5 +1,10 @@
-# MCP-CanaryTrap v1.3.0
+# MCP-CanaryTrap v1.3.2
 
+## Beginner-friendly dashboard (v1.3.2)
+
+The dashboard has been redesigned with plain-language navigation, a guided first-use panel, clearer descriptions for tests and results, a lighter high-contrast visual style, and a matching sign-in/setup screen. The advanced gateway and protection settings remain available; they are explicitly described as advanced features.
+
+**Suggested first run:** open **Try an Example**, run the normal example, then run the warning example, and open **Activity & Findings** to compare the results. A clean result only describes the inputs processed by that test; it is not a guarantee that an entire external system is safe.
 **A deterministic decoy-access research prototype for Model Context Protocol (MCP) server testing, with deployment configuration tooling.**
 
 > Important scope statement: the project now includes real-message monitoring adapters for configured Streamable HTTP and local stdio MCP connections, plus simulation mode. It is a research prototype, not a universal transparent proxy or an industry-validated security product. Validate every target server/client combination before operational use.
@@ -12,7 +17,7 @@
 - Examiner-defined custom test builder: configure decoy target names and structured interactions in the dashboard; the backend derives decoy matches and evaluates the same verdict rule without adding a new hardcoded scenario.
 - Timestamped interaction events persisted in SQLite.
 - Deterministic verdict: `CLEAN` with no recorded decoy access, `FLAGGED` with one or more decoy accesses.
-- Evidence event IDs, FastAPI reporting endpoints and a browser dashboard. In production mode, the dashboard/API routes require configured HTTP Basic credentials; `/health` and `/ready` are health endpoints.
+- Evidence event IDs, FastAPI reporting endpoints and a browser dashboard. In production mode, browser users sign in with a dashboard account (created during first-run setup if environment credentials are not configured); HTTP Basic remains available for compatible API clients. `/health` and `/ready` are health endpoints.
 - Automated regression tests and presentation documentation.
 - **Security Center (non-AI/ML):** tenant-scoped allow/deny/monitor policies enforced for supported tool calls, resource reads and prompt gets on HTTP/stdio gateway traffic; maintained MCP inventory; configured-connection reconciliation; posture checks; policy smoke tests; deterministic frequency baselines; cross-server exact-match correlation; unregistered observed gateway connection checks; webhook notifications; compliance-style posture report; role-based API keys; and SHA-256 hash-chained gateway audit entries.
 
@@ -38,7 +43,7 @@ Run the dashboard:
 python -m mcp_canarytrap.api
 ```
 
-Open `http://127.0.0.1:8000`; API documentation is at `http://127.0.0.1:8000/docs`. The dashboard is organized into separate navigation pages: **Overview**, **Custom Test Lab**, **Test Sessions**, **Events & Evidence**, **Demo Lab**, **Live MCP Gateway**, **Security Center**, **Guide & Limitations**, and **Setup & Deploy**. The deployment wizard generates an environment file and checklist locally in your browser; it does not deploy until you push the repository and authorize your hosting provider. Use Custom Test Lab to enter a new case, configure decoy targets, add interactions, and run it.
+The app now defaults to protected mode. Open `http://127.0.0.1:8000`; on first launch, create the administrator account in the browser. Use a unique password of at least 16 characters. API documentation is at `http://127.0.0.1:8000/docs` after sign-in. For a private local development session without login, explicitly set `APP_ENV=development` before starting the app; do not use that mode on a shared or public network. The dashboard has nine navigation views: **Home**, **Run a Test**, **Test History**, **Activity & Findings**, **Try an Example**, **Connect a Server**, **Protection Rules**, **Help & How It Works**, and **Settings & Deployment**. Start with **Try an Example**, then review **Activity & Findings**. The setup page creates an environment file and checklist locally in your browser; it does not deploy until you push the repository and authorize your hosting provider. Advanced server and protection settings are labelled as such.
 
 ## Project map
 
@@ -101,13 +106,13 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-Open `http://127.0.0.1:8000`; the browser will request Basic Authentication credentials. The service is bound to localhost and persists SQLite data in a named volume. Do not commit `.env`.
+Open `http://127.0.0.1:8000`. If dashboard credentials are not configured, create the first administrator in the setup form. The password is stored as a salted scrypt hash in the persistent SQLite database; the setup endpoint becomes unavailable after the first account is created. For a public deployment, configure environment credentials first or complete first-run setup in a controlled window, because the first visitor could otherwise claim the setup. Later visits use the dashboard sign-in form. Existing environment-configured `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` values and HTTP Basic clients remain supported. The service is bound to localhost and persists SQLite data in a named volume. Do not commit `.env`.
 
 ### Hosted Render Blueprint
 
-A `render.yaml` Blueprint is included. Push the project to GitHub, then use the **Setup & Deploy** dashboard page to prepare the steps and open the Render Blueprint flow. Review the persistent-disk costs before deploying. The Blueprint prompts you to configure dashboard credentials in the hosting environment; copy them from your private local configuration file, then delete that file when no longer needed. See [`docs/12-deployment-and-configuration.md`](docs/12-deployment-and-configuration.md).
+A `render.yaml` Blueprint is included. Push the project to GitHub, then use the **Setup & Deploy** dashboard page to prepare the steps and open the Render Blueprint flow. Review the persistent-disk costs before deploying. After deployment, open the service URL and create the first administrator if dashboard credentials were not configured as environment variables. The administrator record is stored in the persistent disk-backed SQLite database. Alternatively, configure both `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` as secret environment variables. See [`docs/12-deployment-and-configuration.md`](docs/12-deployment-and-configuration.md).
 
-The Setup & Deploy wizard runs locally in the browser and downloads `.env.production` and a deployment checklist. The Live MCP Gateway form saves non-secret upstream configuration to SQLite or generates a configuration snippet; it does not submit or store bearer-token values. Put secrets into the hosting provider's secret settings. The current production guard is HTTP Basic authentication, not enterprise SSO or a security certification.
+The Setup & Deploy wizard runs locally in the browser and downloads `.env.production` and a deployment checklist. The Live MCP Gateway form saves non-secret upstream configuration to SQLite or generates a configuration snippet; it does not submit or store bearer-token values. Put secrets into the hosting provider's secret settings. The production dashboard supports a first-run administrator setup form and session-cookie sign-in; environment-configured HTTP Basic authentication remains supported for API clients. This is not enterprise SSO or a security certification.
 
 ## Custom test mode
 

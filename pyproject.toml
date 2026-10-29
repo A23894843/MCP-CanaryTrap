@@ -1,25 +1,45 @@
+# Explanation: Packaging/test configuration entry (configuration value): see the value on the following line to understand the setting.
 [build-system]
+# Explanation: Packaging/test configuration entry (requires): see the value on the following line to understand the setting.
 requires = ["setuptools>=68"]
+# Explanation: Packaging/test configuration entry (build-backend): see the value on the following line to understand the setting.
 build-backend = "setuptools.build_meta"
 
+# Explanation: Packaging/test configuration entry (configuration value): see the value on the following line to understand the setting.
 [project]
+# Explanation: Packaging/test configuration entry (name): see the value on the following line to understand the setting.
 name = "mcp-canarytrap"
-version = "1.3.0"
+# Explanation: Packaging/test configuration entry (version): see the value on the following line to understand the setting.
+version = "1.3.2"
+# Explanation: Packaging/test configuration entry (description): see the value on the following line to understand the setting.
 description = "Educational deterministic decoy-access detection prototype for MCP servers"
+# Explanation: Packaging/test configuration entry (requires-python): see the value on the following line to understand the setting.
 requires-python = ">=3.11"
+# Explanation: Packaging/test configuration entry (dependencies): see the value on the following line to understand the setting.
 dependencies = ["mcp[cli]>=2,<3", "fastapi>=0.115", "uvicorn>=0.30", "httpx>=0.27"]
 
+# Explanation: Packaging/test configuration entry (configuration value): see the value on the following line to understand the setting.
 [project.optional-dependencies]
+# Explanation: Packaging/test configuration entry (dev): see the value on the following line to understand the setting.
 dev = ["pytest>=8", "httpx>=0.27"]
 
+# Explanation: Packaging/test configuration entry (configuration value): see the value on the following line to understand the setting.
 [project.scripts]
+# Explanation: Packaging/test configuration entry (canarytrap-demo): see the value on the following line to understand the setting.
 canarytrap-demo = "mcp_canarytrap.demo:main"
+# Explanation: Packaging/test configuration entry (canarytrap-api): see the value on the following line to understand the setting.
 canarytrap-api = "mcp_canarytrap.api:run"
+# Explanation: Packaging/test configuration entry (canarytrap-stdio-proxy): see the value on the following line to understand the setting.
 canarytrap-stdio-proxy = "mcp_canarytrap.stdio_proxy:main"
 
+# Explanation: Packaging/test configuration entry (configuration value): see the value on the following line to understand the setting.
 [tool.setuptools.packages.find]
+# Explanation: Packaging/test configuration entry (where): see the value on the following line to understand the setting.
 where = ["src"]
 
+# Explanation: Packaging/test configuration entry (configuration value): see the value on the following line to understand the setting.
 [tool.pytest.ini_options]
+# Explanation: Packaging/test configuration entry (testpaths): see the value on the following line to understand the setting.
 testpaths = ["tests"]
+# Explanation: Packaging/test configuration entry (pythonpath): see the value on the following line to understand the setting.
 pythonpath = ["src"]

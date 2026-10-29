@@ -1,13 +1,26 @@
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 .venv/
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 __pycache__/
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 *.py[cod]
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 *.egg-info/
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 .pytest_cache/
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 .coverage
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 htmlcov/
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 .env
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 .env.*
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 !.env.example
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 *.sqlite3
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 *.db
+# Explanation: Ignore rule: keeps generated, local, or sensitive files out of Git tracking.
 .DS_Store

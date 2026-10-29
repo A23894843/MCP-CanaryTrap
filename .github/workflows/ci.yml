@@ -1,21 +1,42 @@
+# Explanation: Deployment/CI configuration (name): indentation shows which service, job, or setting this belongs to.
 name: Python CI
+# Explanation: Deployment/CI configuration (on): indentation shows which service, job, or setting this belongs to.
 on:
+  # Explanation: Deployment/CI configuration (push): indentation shows which service, job, or setting this belongs to.
   push:
+    # Explanation: Deployment/CI configuration (branches): indentation shows which service, job, or setting this belongs to.
     branches: [main, master]
+  # Explanation: Deployment/CI configuration (pull_request): indentation shows which service, job, or setting this belongs to.
   pull_request:
+    # Explanation: Deployment/CI configuration (branches): indentation shows which service, job, or setting this belongs to.
     branches: [main, master]
+# Explanation: Deployment/CI configuration (permissions): indentation shows which service, job, or setting this belongs to.
 permissions:
+  # Explanation: Deployment/CI configuration (contents): indentation shows which service, job, or setting this belongs to.
   contents: read
+# Explanation: Deployment/CI configuration (jobs): indentation shows which service, job, or setting this belongs to.
 jobs:
+  # Explanation: Deployment/CI configuration (test): indentation shows which service, job, or setting this belongs to.
   test:
+    # Explanation: Deployment/CI configuration (runs-on): indentation shows which service, job, or setting this belongs to.
     runs-on: ubuntu-latest
+    # Explanation: Deployment/CI configuration (steps): indentation shows which service, job, or setting this belongs to.
     steps:
+      # Explanation: Deployment/CI configuration (- uses): indentation shows which service, job, or setting this belongs to.
       - uses: actions/checkout@v4
+      # Explanation: Deployment/CI configuration (- uses): indentation shows which service, job, or setting this belongs to.
       - uses: actions/setup-python@v5
+        # Explanation: Deployment/CI configuration (with): indentation shows which service, job, or setting this belongs to.
         with:
+          # Explanation: Deployment/CI configuration (python-version): indentation shows which service, job, or setting this belongs to.
           python-version: '3.12'
+          # Explanation: Deployment/CI configuration (cache): indentation shows which service, job, or setting this belongs to.
           cache: pip
+      # Explanation: Deployment/CI configuration (- name): indentation shows which service, job, or setting this belongs to.
       - name: Install package and test dependencies
+        # Explanation: Deployment/CI configuration (run): indentation shows which service, job, or setting this belongs to.
         run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+      # Explanation: Deployment/CI configuration (- name): indentation shows which service, job, or setting this belongs to.
       - name: Run tests
+        # Explanation: Deployment/CI configuration (run): indentation shows which service, job, or setting this belongs to.
         run: python -m pytest -v

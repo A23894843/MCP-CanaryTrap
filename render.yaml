@@ -1,37 +1,65 @@
 # Render Blueprint. Review pricing and persistent-disk charges before deploying.
+# Explanation: Deployment/CI configuration (services): indentation shows which service, job, or setting this belongs to.
 services:
+  # Explanation: Deployment/CI configuration (- type): indentation shows which service, job, or setting this belongs to.
   - type: web
+    # Explanation: Deployment/CI configuration (name): indentation shows which service, job, or setting this belongs to.
     name: mcp-canarytrap
+    # Explanation: Deployment/CI configuration (runtime): indentation shows which service, job, or setting this belongs to.
     runtime: python
+    # Explanation: Deployment/CI configuration (plan): indentation shows which service, job, or setting this belongs to.
     plan: starter
+    # Explanation: Deployment/CI configuration (buildCommand): indentation shows which service, job, or setting this belongs to.
     buildCommand: pip install --upgrade pip && pip install -e ".[dev]"
+    # Explanation: Deployment/CI configuration (startCommand): indentation shows which service, job, or setting this belongs to.
     startCommand: uvicorn mcp_canarytrap.api:app --host 0.0.0.0 --port $PORT
+    # Explanation: Deployment/CI configuration (healthCheckPath): indentation shows which service, job, or setting this belongs to.
     healthCheckPath: /health
+    # Explanation: Deployment/CI configuration (autoDeploy): indentation shows which service, job, or setting this belongs to.
     autoDeploy: true
+    # Explanation: Deployment/CI configuration (disk): indentation shows which service, job, or setting this belongs to.
     disk:
+      # Explanation: Deployment/CI configuration (name): indentation shows which service, job, or setting this belongs to.
       name: canarytrap-data
+      # Explanation: Deployment/CI configuration (mountPath): indentation shows which service, job, or setting this belongs to.
       mountPath: /var/data
+      # Explanation: Deployment/CI configuration (sizeGB): indentation shows which service, job, or setting this belongs to.
       sizeGB: 1
+    # Explanation: Deployment/CI configuration (envVars): indentation shows which service, job, or setting this belongs to.
     envVars:
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: APP_ENV
+        # Explanation: Deployment/CI configuration (value): indentation shows which service, job, or setting this belongs to.
         value: production
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: HOST
+        # Explanation: Deployment/CI configuration (value): indentation shows which service, job, or setting this belongs to.
         value: 0.0.0.0
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: CANARYTRAP_DB
+        # Explanation: Deployment/CI configuration (value): indentation shows which service, job, or setting this belongs to.
         value: /var/data/canarytrap.sqlite3
-      - key: DASHBOARD_USERNAME
-        sync: false
-      - key: DASHBOARD_PASSWORD
-        sync: false
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: CANARYTRAP_RBAC_KEYS
+        # Explanation: Deployment/CI configuration (sync): indentation shows which service, job, or setting this belongs to.
         sync: false
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: CANARYTRAP_DEFAULT_TENANT
+        # Explanation: Deployment/CI configuration (value): indentation shows which service, job, or setting this belongs to.
         value: default
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: CANARYTRAP_DEFAULT_POLICY_ACTION
+        # Explanation: Deployment/CI configuration (value): indentation shows which service, job, or setting this belongs to.
         value: allow
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: CANARYTRAP_ALLOWED_UPSTREAM_HOSTS
+        # Explanation: Deployment/CI configuration (sync): indentation shows which service, job, or setting this belongs to.
         sync: false
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS
+        # Explanation: Deployment/CI configuration (value): indentation shows which service, job, or setting this belongs to.
         value: "false"
+      # Explanation: Deployment/CI configuration (- key): indentation shows which service, job, or setting this belongs to.
       - key: CANARYTRAP_WEBHOOK_URL
+        # Explanation: Deployment/CI configuration (sync): indentation shows which service, job, or setting this belongs to.
         sync: false

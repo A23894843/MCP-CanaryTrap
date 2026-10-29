@@ -1,32 +1,64 @@
+# Explanation: Deployment/CI configuration (services): indentation shows which service, job, or setting this belongs to.
 services:
+  # Explanation: Deployment/CI configuration (canarytrap): indentation shows which service, job, or setting this belongs to.
   canarytrap:
+    # Explanation: Deployment/CI configuration (build): indentation shows which service, job, or setting this belongs to.
     build: .
+    # Explanation: Deployment/CI configuration (env_file): indentation shows which service, job, or setting this belongs to.
     env_file:
+      # Explanation: Deployment/CI configuration (workflow/deployment entry): indentation shows which service, job, or setting this belongs to.
       - .env
+    # Explanation: Deployment/CI configuration (ports): indentation shows which service, job, or setting this belongs to.
     ports:
+      # Explanation: Deployment/CI configuration (- "127.0.0.1): indentation shows which service, job, or setting this belongs to.
       - "127.0.0.1:${PORT:-8000}:8000"
+    # Explanation: Deployment/CI configuration (environment): indentation shows which service, job, or setting this belongs to.
     environment:
+      # Explanation: Deployment/CI configuration (APP_ENV): indentation shows which service, job, or setting this belongs to.
       APP_ENV: production
+      # Explanation: Deployment/CI configuration (HOST): indentation shows which service, job, or setting this belongs to.
       HOST: 0.0.0.0
+      # Explanation: Deployment/CI configuration (PORT): indentation shows which service, job, or setting this belongs to.
       PORT: 8000
-      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:?Set DASHBOARD_USERNAME in .env}
-      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:?Set DASHBOARD_PASSWORD in .env}
+      # Explanation: Deployment/CI configuration (DASHBOARD_USERNAME): indentation shows which service, job, or setting this belongs to.
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-}
+      # Explanation: Deployment/CI configuration (DASHBOARD_PASSWORD): indentation shows which service, job, or setting this belongs to.
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_DB): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_DB: /app/data/canarytrap.sqlite3
+      # Explanation: Deployment/CI configuration (CANARYTRAP_HTTP_UPSTREAMS): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_HTTP_UPSTREAMS: ${CANARYTRAP_HTTP_UPSTREAMS:-}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_UPSTREAM_TIMEOUT): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_UPSTREAM_TIMEOUT: ${CANARYTRAP_UPSTREAM_TIMEOUT:-60}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_RBAC_KEYS): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_RBAC_KEYS: ${CANARYTRAP_RBAC_KEYS:-}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_DEFAULT_TENANT): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_DEFAULT_TENANT: ${CANARYTRAP_DEFAULT_TENANT:-default}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_DEFAULT_POLICY_ACTION): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_DEFAULT_POLICY_ACTION: ${CANARYTRAP_DEFAULT_POLICY_ACTION:-allow}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_ALLOWED_UPSTREAM_HOSTS): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_ALLOWED_UPSTREAM_HOSTS: ${CANARYTRAP_ALLOWED_UPSTREAM_HOSTS:-}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS: ${CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS:-false}
+      # Explanation: Deployment/CI configuration (CANARYTRAP_WEBHOOK_URL): indentation shows which service, job, or setting this belongs to.
       CANARYTRAP_WEBHOOK_URL: ${CANARYTRAP_WEBHOOK_URL:-}
+    # Explanation: Deployment/CI configuration (volumes): indentation shows which service, job, or setting this belongs to.
     volumes:
+      # Explanation: Deployment/CI configuration (- canarytrap_data): indentation shows which service, job, or setting this belongs to.
       - canarytrap_data:/app/data
+    # Explanation: Deployment/CI configuration (restart): indentation shows which service, job, or setting this belongs to.
     restart: unless-stopped
+    # Explanation: Deployment/CI configuration (healthcheck): indentation shows which service, job, or setting this belongs to.
     healthcheck:
+      # Explanation: Deployment/CI configuration (test): indentation shows which service, job, or setting this belongs to.
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      # Explanation: Deployment/CI configuration (interval): indentation shows which service, job, or setting this belongs to.
       interval: 30s
+      # Explanation: Deployment/CI configuration (timeout): indentation shows which service, job, or setting this belongs to.
       timeout: 5s
+      # Explanation: Deployment/CI configuration (retries): indentation shows which service, job, or setting this belongs to.
       retries: 3
+# Explanation: Deployment/CI configuration (volumes): indentation shows which service, job, or setting this belongs to.
 volumes:
+  # Explanation: Deployment/CI configuration (canarytrap_data): indentation shows which service, job, or setting this belongs to.
   canarytrap_data:
