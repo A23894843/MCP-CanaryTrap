@@ -11,3 +11,7 @@
 
 ## Separate pages
 `dashboard.html`, `cve.html`, `simulation.html`, `auditor.html`, `url-validator.html`, `decoy-monitor.html` are separate pages. Their JavaScript is split into `common.js`, `dashboard.js`, `simulation.js`, `auditor.js`, `url-validator.js`, and `decoy-monitor.js`.
+
+
+## Render deployment note
+SessionMiddleware is deliberately registered after the login-protection middleware so it is the outer ASGI middleware and populates `request.session` before authentication checks run. The Render deployment launcher binds to `0.0.0.0` and uses the platform-provided `PORT`. Secure session cookies are enabled for HTTPS deployments.
