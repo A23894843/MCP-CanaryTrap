@@ -1,23 +1,10 @@
-# Python
 .venv/
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Secrets and local environment
 .env
-.env.*
-!.env.example
-
-# Runtime data
 data/*.db
-data/*.sqlite
-data/*.sqlite3
 
-# OS/editor
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+data/auth.json
+data/.session_secret
+data/simulation-proof.txt
+*.pyc

@@ -1,8 +1,9 @@
 DECOYS = [
-    {"name": "admin_config", "description": "Fictional administrator configuration decoy", "type": "tool"},
-    {"name": "customer_backup", "description": "Fictional customer backup decoy", "type": "resource"},
-    {"name": "system_secrets", "description": "Fictional system secrets decoy", "type": "resource"},
+    {"name": "admin_config", "description": "Fictional administrator configuration decoy.", "severity": "HIGH"},
+    {"name": "customer_backup", "description": "Fictional customer backup decoy.", "severity": "CRITICAL"},
+    {"name": "system_secrets", "description": "Fictional system secrets decoy.", "severity": "CRITICAL"},
 ]
-
 def get_decoys():
-    return [dict(item) for item in DECOYS]
+    return [item.copy() for item in DECOYS]
+def get_decoy(name):
+    return next((item.copy() for item in DECOYS if item["name"] == name), None)

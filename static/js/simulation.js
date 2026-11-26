@@ -1,0 +1,1 @@
+document.getElementById("simulate-button").onclick=async()=>{try{show("simulation-output",await api("/api/suite/simulate",{authorization_endpoint:document.getElementById("sim-endpoint").value}));}catch(e){show("simulation-output",{error:e.message})}};

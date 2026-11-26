@@ -1,0 +1,1 @@
+document.getElementById("audit-button").onclick=async()=>{try{show("audit-output",await api("/api/suite/audit",{paths:[document.getElementById("audit-path").value]}));}catch(e){show("audit-output",{error:e.message})}};

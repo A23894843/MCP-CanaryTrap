@@ -1,0 +1,1 @@
+document.getElementById("validate-button").onclick=async()=>{try{show("url-output",await api("/api/suite/validate-url",{authorization_endpoint:document.getElementById("url-endpoint").value}));}catch(e){show("url-output",{error:e.message})}};

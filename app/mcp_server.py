@@ -1,46 +1,47 @@
+"""Instrumented MCP server. Keep stdout free for MCP STDIO protocol messages."""
 import sys
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from mcp.server import MCPServer
 from app.core.detector import detect_interaction
 from app.storage.database import create_database, save_event
-from app.core.evidence import append_evidence
 
 mcp = MCPServer("MCP-CanaryTrap")
 create_database()
 
-def monitor_tool(tool_name: str):
-    result = detect_interaction(tool_name)
-    kind = "DECOY_ACCESS" if result["detected"] else "NORMAL_INTERACTION"
-    save_event(tool_name, kind, result["message"])
-    append_evidence(kind, tool_name, result["verdict"], {"trigger": result["trigger"]})
+def monitor_tool(name):
+    result = detect_interaction(name)
+    if result["detected"]:
+        save_event(result["target"], result["event_type"], result["severity"],
+                   result["message"], source="mcp")
     return result
 
 @mcp.tool()
 def weather_search(city: str) -> str:
-    """Return simulated weather information (benign demonstration tool)."""
+    """Return simulated weather information for a city."""
     monitor_tool("weather_search")
     return f"Simulated weather information for {city}."
 
 @mcp.tool()
 def admin_config() -> str:
-    """Fictional decoy: administrator configuration. Access is flagged."""
+    """Fictional administrator configuration decoy."""
     monitor_tool("admin_config")
-    return "DECOY: fictional administrator configuration."
+    return "Fictional administrator configuration decoy."
 
 @mcp.tool()
 def customer_backup() -> str:
-    """Fictional decoy: customer backup resource. Access is flagged."""
+    """Fictional customer backup decoy."""
     monitor_tool("customer_backup")
-    return "DECOY: fictional customer backup."
+    return "Fictional customer backup decoy."
 
 @mcp.tool()
 def system_secrets() -> str:
-    """Fictional decoy: system secrets resource. Access is flagged."""
+    """Fictional system secrets decoy."""
     monitor_tool("system_secrets")
-    return "DECOY: fictional system secrets."
+    return "Fictional system secrets decoy."
 
 if __name__ == "__main__":
     mcp.run()
