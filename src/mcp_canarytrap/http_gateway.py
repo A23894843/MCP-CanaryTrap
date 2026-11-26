@@ -31,6 +31,7 @@ from starlette.background import BackgroundTask
 from .gateway_core import GatewayRecorder, decoy_kind, inject_decoys, load_http_upstreams, request_operation, synthetic_response, transform_response
 # Explanation: Imports names from security_center.
 from .security_center import policy_decision, resolve_gateway_tenant
+from .cve_2026_5029 import enforce_cve_2026_5029_request
 
 # Explanation: Assigns or updates a value used later by this function or module.
 router = APIRouter(tags=["live MCP gateway"])
@@ -179,7 +180,10 @@ async def _proxy(request: Request, connection_id: str) -> Response:
         # Explanation: Raise an exception to reject the operation or report a failure.
         raise HTTPException(status_code=404, detail=f"No approved HTTP MCP upstream named '{connection_id}' is configured")
     # Explanation: Assigns or updates a value used later by this function or module.
-    tenant = resolve_gateway_tenant(request.headers.get("x-canarytrap-api-key"))
+    # Strict opt-in mitigation profile: reject unauthenticated or untrusted-origin
+    # traffic before parsing/forwarding any MCP request to the upstream server.
+    protected_tenant = enforce_cve_2026_5029_request(request)
+    tenant = protected_tenant or resolve_gateway_tenant(request.headers.get("x-canarytrap-api-key"))
 
     # Explanation: Assigns or updates a value used later by this function or module.
     max_body_bytes = int(os.getenv("CANARYTRAP_MAX_REQUEST_BYTES", str(2 * 1024 * 1024)))

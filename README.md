@@ -143,3 +143,17 @@ See [`docs/13-live-gateway.md`](docs/13-live-gateway.md) for setup, example envi
 Review `.env.example` and `docs/14-security-center.md` before deployment. Configure `CANARYTRAP_RBAC_KEYS` with high-entropy keys and tenant/role assignments, and use HTTPS for remote upstreams and alert webhooks. Private/local upstreams are blocked by default; only set `CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS=true` for explicitly approved internal MCP servers with network egress controls. The dashboard's **Security Center** page exposes the core deterministic controls and reports.
 
 **Scope warning:** inventory and shadow-connection checks can only see configured connections and activity passing through this gateway. The product does not discover every MCP server on a machine/network, and its compliance report is not a certification. Hash-chained SQLite audit data is tamper-evident, not immutable. Webhook delivery is best-effort and payloads are not signed.
+
+
+## CVE-2026-5029 mitigation demonstrator
+
+This repository includes an **opt-in gateway-side mitigation profile** for the unauthenticated HTTP MCP attack path described in CVE-2026-5029. It enforces Host and Origin allowlists and requires a valid tenant API key before an MCP request is parsed or forwarded.
+
+- **Examiner dashboard page:** `/cve-2026-5029` (sign in to the dashboard first)
+- **Technical implementation and setup:** [`docs/CVE-2026-5029-MITIGATION.md`](docs/CVE-2026-5029-MITIGATION.md)
+- **NIST NVD:** https://nvd.nist.gov/vuln/detail/CVE-2026-5029
+- **CERT Polska advisory:** https://cert.pl/en/posts/2026/05/CVE-2026-5029/
+- **GitHub Security Advisory:** https://github.com/advisories/GHSA-jv4w-6p47-rhcx
+- **Affected upstream:** https://github.com/formulahendry/mcp-server-code-runner
+
+Important: this is an independent compensating-control prototype, not an upstream patch. Keep the affected upstream MCP endpoint private and expose only the authenticated CanaryTrap gateway. Enable the profile only after setting `CANARYTRAP_CVE_ALLOWED_HOSTS`, `CANARYTRAP_CVE_ALLOWED_ORIGINS`, and `CANARYTRAP_RBAC_KEYS`.

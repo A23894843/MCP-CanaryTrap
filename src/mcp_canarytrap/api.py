@@ -55,7 +55,7 @@ DASHBOARD_USERNAME = os.getenv("DASHBOARD_USERNAME", "")
 DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "")
 
 # Explanation: Assigns or updates a value used later by this function or module.
-app = FastAPI(title="MCP-CanaryTrap", version="1.3.1",
+app = FastAPI(title="MCP-CanaryTrap", version="1.4.0",
               description="MCP decoy monitoring prototype with stdio and Streamable HTTP gateway adapters.")
 # Explanation: Executes this statement. Follow the variables and called functions to understand its input, side effects, and result.
 app.include_router(http_gateway_router)
@@ -488,6 +488,33 @@ def dashboard() -> str:
     """Serve the static dashboard HTML."""
     # Explanation: Return this result to the caller; this ends the current function path.
     return TEMPLATE.read_text(encoding="utf-8")
+
+@app.get("/cve-2026-5029", response_class=HTMLResponse, tags=["security", "examiner"])
+def cve_2026_5029_page() -> str:
+    """Examiner-facing summary of the CVE-2026-5029 mitigation prototype."""
+    return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP-CanaryTrap | CVE-2026-5029</title><style>
+body{font:16px/1.6 system-ui;margin:0;background:#f4f7fb;color:#182538}main{max-width:1000px;margin:40px auto;padding:24px}
+.card{background:white;border:1px solid #dce4ef;border-radius:14px;padding:22px;margin:16px 0}
+h1{line-height:1.2}a{color:#245fcb}li{margin:.5rem 0}.tag{display:inline-block;padding:4px 10px;border-radius:20px;background:#fff0d4;color:#754b00;font-weight:700}
+code{background:#eef2f8;padding:2px 5px;border-radius:4px}.back{display:inline-block;margin-bottom:18px}
+</style></head><body><main><a class="back" href="/">← Back to MCP-CanaryTrap dashboard</a>
+<h1>CVE-2026-5029 · Mitigation Demonstrator</h1><p><span class="tag">High · CVSS 8.7 (reported)</span> <span class="tag">CWE-306 · Missing Authentication</span></p>
+<div class="card"><h2>What the advisory describes</h2><p>CERT Polska reported that the Code Runner MCP Server's HTTP transport exposed its <code>/mcp</code> JSON-RPC endpoint without authentication, allowing unauthenticated invocation of <code>run-code</code> and arbitrary code execution with the server process privileges.</p><p><strong>Important:</strong> MCP-CanaryTrap is an independent gateway-side compensating-control prototype. It is not an upstream vendor patch and does not claim to eliminate the vulnerability in Code Runner itself.</p></div>
+<div class="card"><h2>Implemented in this project</h2><ul><li>Opt-in strict gateway profile controlled by <code>CANARYTRAP_CVE_2026_5029_MODE=true</code>.</li><li>Exact Host allowlist via <code>CANARYTRAP_CVE_ALLOWED_HOSTS</code>.</li><li>Exact Origin allowlist via <code>CANARYTRAP_CVE_ALLOWED_ORIGINS</code> when browser Origin is present.</li><li>Mandatory <code>X-CanaryTrap-API-Key</code> authenticated against the existing tenant RBAC map.</li><li>Rejects requests before MCP payload parsing or upstream forwarding.</li><li>Existing gateway policy checks, decoy detection, request-size controls, and upstream restrictions remain in place.</li></ul></div>
+<div class="card"><h2>Required deployment configuration</h2><pre>CANARYTRAP_CVE_2026_5029_MODE=true
+CANARYTRAP_CVE_ALLOWED_HOSTS=your-service.onrender.com
+CANARYTRAP_CVE_ALLOWED_ORIGINS=https://your-service.onrender.com
+CANARYTRAP_RBAC_KEYS={"REPLACE_WITH_LONG_RANDOM_KEY":{"tenant":"examiner-demo","role":"operator"}}</pre>
+<p>Replace all example values. Store keys as secrets in Render. Configure the Code Runner upstream on a private network and do not publish its HTTP port directly to the internet. Only the CanaryTrap gateway should be able to reach it.</p></div>
+<div class="card"><h2>Examiner verification checklist</h2><ol><li>With profile enabled, send an MCP request without <code>X-CanaryTrap-API-Key</code>: expect HTTP 401.</li><li>Send a request with an invalid API key: expect HTTP 403.</li><li>Send a request with a Host outside the allowlist: expect HTTP 400.</li><li>Send a browser request with an Origin outside the allowlist: expect HTTP 403.</li><li>Send a valid key, allowed Host and allowed Origin: gateway may continue to normal MCP policy and upstream handling.</li><li>Confirm the upstream MCP service is not directly internet-accessible.</li></ol><p>These checks validate the gateway guard. They do not prove that the upstream Code Runner source has been patched.</p></div>
+<div class="card"><h2>Primary CVE references</h2><ul>
+<li><a href="https://nvd.nist.gov/vuln/detail/CVE-2026-5029" target="_blank" rel="noopener">NIST National Vulnerability Database — CVE-2026-5029</a></li>
+<li><a href="https://cert.pl/en/posts/2026/05/CVE-2026-5029/" target="_blank" rel="noopener">CERT Polska security advisory — CVE-2026-5029</a></li>
+<li><a href="https://github.com/advisories/GHSA-jv4w-6p47-rhcx" target="_blank" rel="noopener">GitHub Security Advisory — GHSA-jv4w-6p47-rhcx</a></li>
+<li><a href="https://github.com/formulahendry/mcp-server-code-runner" target="_blank" rel="noopener">Affected upstream project — mcp-server-code-runner</a></li></ul></div>
+</main></body></html>"""
+
 
 @app.get("/health", tags=["system"])
 # Explanation: Function health: Public liveness endpoint; deliberately contains no secret/config values.

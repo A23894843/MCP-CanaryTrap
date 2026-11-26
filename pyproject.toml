@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 # Explanation: Packaging/test configuration entry (name): see the value on the following line to understand the setting.
 name = "mcp-canarytrap"
 # Explanation: Packaging/test configuration entry (version): see the value on the following line to understand the setting.
-version = "1.3.2"
+version = "1.4.0"
 # Explanation: Packaging/test configuration entry (description): see the value on the following line to understand the setting.
 description = "Educational deterministic decoy-access detection prototype for MCP servers"
 # Explanation: Packaging/test configuration entry (requires-python): see the value on the following line to understand the setting.

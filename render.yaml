@@ -63,3 +63,9 @@ services:
       - key: CANARYTRAP_WEBHOOK_URL
         # Explanation: Deployment/CI configuration (sync): indentation shows which service, job, or setting this belongs to.
         sync: false
+      - key: CANARYTRAP_CVE_2026_5029_MODE
+        value: "false"
+      - key: CANARYTRAP_CVE_ALLOWED_HOSTS
+        sync: false
+      - key: CANARYTRAP_CVE_ALLOWED_ORIGINS
+        sync: false
