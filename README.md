@@ -1,4 +1,5 @@
 # MCP-CanaryTrap
+[Live deployed project on Render](https://mcp-canarytrap.onrender.com/)
 
 **Research direction:** A deterministic decoy-injection mechanism for detecting overreaching behavior in Model Context Protocol (MCP) servers.
 
@@ -149,8 +150,5 @@ Do not describe these proposed properties as completed results. A decoy match is
 - [NVD vulnerability record](https://nvd.nist.gov/vuln/detail/CVE-2025-6514)
 - [GitHub Security Advisory](https://github.com/advisories/GHSA-6xpm-ggf7-wc3p)
 - [JFrog technical analysis](https://research.jfrog.com/vulnerabilities/mcp-remote-command-injection-rce-jfsa-2025-001290844/)
-
-## Deployed Project
-- [Live deployed project on Render](https://mcp-canarytrap.onrender.com/)
 
 CVE-2025-6514 concerns OS command injection in affected `mcp-remote` versions when connecting to untrusted MCP servers using crafted OAuth `authorization_endpoint` metadata. The affected range is 0.0.5 through 0.1.15; 0.1.16 is the fixed version. This project is a supporting educational assessment prototype, not an upstream patch or a live exploit reproduction.
