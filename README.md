@@ -1,8 +1,12 @@
 # MCP-CanaryTrap
 
-Rule-based monitoring prototype for configured decoy tools in an instrumented Model Context Protocol (MCP) server.
+**Research direction:** A deterministic decoy-injection mechanism for detecting overreaching behavior in Model Context Protocol (MCP) servers.
 
-## CVE-2025-6514 case study\n\nCVE-2025-6514 is an OS command injection vulnerability affecting npm package `mcp-remote` versions 0.0.5 through 0.1.15, fixed in 0.1.16. The unsafe flow involves crafted OAuth `authorization_endpoint` metadata from an untrusted MCP server reaching command-handling logic. Such input must be treated as untrusted; never concatenate remote metadata into shell commands. Update affected installations to 0.1.16 or later. This repository demonstrates safe simulation and defensive checks; it does not patch `mcp-remote`. See `docs/CVE-2025-6514_CASE_STUDY.md`.\n\n## Features
+**CVE case study:** [CVE-2025-6514 — NVD record](https://nvd.nist.gov/vuln/detail/CVE-2025-6514) · [GitHub Security Advisory](https://github.com/advisories/GHSA-6xpm-ggf7-wc3p) · [JFrog technical analysis](https://research.jfrog.com/vulnerabilities/mcp-remote-command-injection-rce-jfsa-2025-001290844/)
+
+Deterministic decoy-monitoring proof of concept for an instrumented Model Context Protocol (MCP) server. The research proposal is to use fabricated resources with no legitimate role in a controlled task as binary signals of overreaching behavior.
+
+## Features
 - MCP server exposes `weather_search` plus fictional decoys: `admin_config`, `customer_backup`, `system_secrets`.
 - Exact-name rule-based detection; HIGH / CRITICAL severity policy.
 - SQLite event persistence with timestamp and event source.
@@ -122,7 +126,28 @@ Open `http://127.0.0.1:8000/dashboard`. The integrated dashboard runs the safe C
 Note: the MCP STDIO server is still available for external MCP clients, which must launch it as their own protocol process. The single command starts the complete integrated assessment dashboard; it cannot replace the MCP host process.
 
 
-## Login and page structure
-On the first launch, open `/setup` and create an administrator password (minimum 12 characters). That setup is one-time. On later visits and after logout/session expiry, the application asks you to **sign in with the existing password**; it does not ask you to set a new password on every login. Passwords are stored as salted PBKDF2-HMAC-SHA256 hashes. The local session cookie expires after eight hours. The dashboard and API endpoints require authentication; `/health`, `/docs`, `/login`, `/setup` and static assets are public for operational reasons. Keep the app bound to localhost unless you configure HTTPS and production hardening.
+## Synopsis alignment: implemented scope vs. research objectives
 
-Pages are split into `dashboard.html`, `cve.html`, `simulation.html`, `auditor.html`, `url-validator.html`, and `decoy-monitor.html`. Each work module has its own JavaScript file under `static/js/`.
+The official synopsis defines five research objectives: (1) a decoy taxonomy, (2) a placement strategy that preserves legitimate task behavior and resists fingerprinting, (3) deterministic detection and verdicts, (4) evasion resistance, and (5) evaluation against legitimate and deliberately misbehaving MCP servers.
+
+### Implemented in this repository
+- A taxonomy of 30 fictional decoy tool names in the instrumented MCP server.
+- Deterministic exact-name matching; a configured decoy match creates a structured event.
+- SQLite event persistence and a FastAPI dashboard for reviewing events.
+- Supporting CVE-2025-6514 utilities: safe vulnerable-flow simulation, local dependency/configuration audit, and authorization-endpoint URL policy validation.
+- Manual demonstration paths for a positive decoy case and a normal-tool negative case.
+
+### Research work not yet established
+- General-purpose injection/placement of decoys into arbitrary third-party MCP server sessions.
+- Evidence that decoys are statistically indistinguishable from genuine assets.
+- Resistance to fingerprinting or deliberate decoy avoidance.
+- A formal multi-server evaluation dataset and measured false-positive/detection rates.
+
+Do not describe these proposed properties as completed results. A decoy match is a deterministic observation within the instrumented environment; it is not, by itself, proof of malicious intent. This prototype does not passively monitor arbitrary third-party MCP servers.
+
+## CVE-2025-6514 references
+- [NVD vulnerability record](https://nvd.nist.gov/vuln/detail/CVE-2025-6514)
+- [GitHub Security Advisory](https://github.com/advisories/GHSA-6xpm-ggf7-wc3p)
+- [JFrog technical analysis](https://research.jfrog.com/vulnerabilities/mcp-remote-command-injection-rce-jfsa-2025-001290844/)
+
+CVE-2025-6514 concerns OS command injection in affected `mcp-remote` versions when connecting to untrusted MCP servers using crafted OAuth `authorization_endpoint` metadata. The affected range is 0.0.5 through 0.1.15; 0.1.16 is the fixed version. This project is a supporting educational assessment prototype, not an upstream patch or a live exploit reproduction.

@@ -1,1 +1,70 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Overview | MCP-CanaryTrap</title><link rel="stylesheet" href="/static/css/style.css"></head><body><div id="app-nav"></div><main><section class="hero"><small>MCP SECURITY & VULNERABILITY ASSESSMENT SUITE</small><h1>MCP-CanaryTrap</h1><p>Local security assessment dashboard, CVE case study and rule-based MCP decoy monitoring.</p></section><section class="metrics"><article><span>Total events</span><b id="total-events">0</b></article><article><span>Decoy detections</span><b id="decoy-events">0</b></article><article><span>Critical events</span><b id="critical-events">0</b></article><article><span>High events</span><b id="high-events">0</b></article></section><section class="panel"><h2>Assessment workspace</h2><p>Each task has its own page and JavaScript module.</p><div class="module-grid"><a class="module-link" href="/cve"><b>CVE-2025-6514 case study</b><span>Problem description, impact and remediation context</span></a><a class="module-link" href="/simulation"><b>01 · Vulnerable-flow simulation</b><span>Safe mock demonstration; no shell execution</span></a><a class="module-link" href="/auditor"><b>02 · Dependency & config auditor</b><span>Scan local manifests, lockfiles and MCP configs</span></a><a class="module-link" href="/url-validator"><b>03 · URL policy validator</b><span>Validate OAuth authorization endpoint URLs</span></a><a class="module-link" href="/decoy-monitor"><b>04 · MCP decoy monitor</b><span>Inspect tool names and review security events</span></a></div></section><footer>Educational prototype. A decoy access is a suspicious signal, not proof of malicious intent.</footer></main><script src="/static/js/common.js"></script><script src="/static/js/dashboard.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP-CanaryTrap | Integrated Security Suite</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header>
+  <div><small>MCP SECURITY & VULNERABILITY ASSESSMENT SUITE</small>
+  <h1>MCP-CanaryTrap</h1>
+  <p>Case study: CVE-2025-6514 · Detection, assessment and defensive validation</p>
+  <p class="cve-reference"><a href="https://nvd.nist.gov/vuln/detail/CVE-2025-6514" target="_blank" rel="noopener noreferrer">Read the official CVE-2025-6514 record on NVD ↗</a>
+  <span> · </span><a href="https://github.com/advisories/GHSA-6xpm-ggf7-wc3p" target="_blank" rel="noopener noreferrer">GitHub Advisory ↗</a></p></div>
+  <span id="api-status">Connecting…</span>
+</header>
+<main>
+  <section class="metrics">
+    <article><span>Total events</span><b id="total-events">0</b></article>
+    <article><span>Decoy detections</span><b id="decoy-events">0</b></article>
+    <article><span>Critical events</span><b id="critical-events">0</b></article>
+    <article><span>High events</span><b id="high-events">0</b></article>
+  </section>
+
+  <section class="panel">
+    <div class="heading"><div><h2>Assessment modules</h2><p>All modules are available from this dashboard.</p></div><span class="tag">Integrated</span></div>
+    <div class="module-grid">
+      <article class="module"><span class="module-no">MODULE 01</span><h3>Vulnerable-flow simulation</h3>
+        <p>Models the unsafe OAuth metadata trust decision. Safe simulation only; no command is executed.</p>
+        <label for="sim-endpoint">Authorization endpoint sample</label>
+        <input id="sim-endpoint" value="https://untrusted.example.invalid/oauth/authorize">
+        <button id="simulate-button">Run safe simulation</button><pre id="simulation-output" class="output">Waiting for simulation…</pre>
+      </article>
+      <article class="module"><span class="module-no">MODULE 02</span><h3>Dependency & config auditor</h3>
+        <p>Scans a selected local directory for package manifests, lockfiles and MCP configuration references.</p>
+        <label for="audit-path">Local path</label>
+        <input id="audit-path" value=".">
+        <button id="audit-button">Run local audit</button><pre id="audit-output" class="output">Waiting for audit…</pre>
+      </article>
+      <article class="module"><span class="module-no">MODULE 03</span><h3>Runtime URL policy validator</h3>
+        <p>Applies a strict HTTPS URL policy to OAuth authorization endpoints.</p>
+        <label for="url-endpoint">Authorization endpoint</label>
+        <input id="url-endpoint" value="https://login.example.org/oauth/authorize">
+        <button id="validate-button">Validate endpoint</button><pre id="url-output" class="output">Waiting for validation…</pre>
+      </article>
+      <article class="module"><span class="module-no">MODULE 04</span><h3>MCP decoy monitoring</h3>
+        <p>Manually exercise the same detector used by the instrumented MCP tools. Real MCP client calls are also recorded.</p>
+        <label for="tool-name">Tool name</label>
+        <input id="tool-name" list="tool-options" value="admin_config">
+        <datalist id="tool-options"><option>weather_search</option><option>admin_config</option><option>customer_backup</option><option>system_secrets</option></datalist>
+        <button id="inspect-button">Inspect tool</button><pre id="tool-output" class="output">Waiting for inspection…</pre>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="heading"><div><h2>Configured decoys</h2><p>Fictional tools exposed by the instrumented MCP server.</p></div></div>
+    <div id="decoy-list" class="decoys">Loading…</div>
+  </section>
+
+  <section class="panel">
+    <div class="heading"><div><h2>Security event history</h2><p>SQLite-backed event records; auto-refreshes every five seconds.</p></div>
+    <button id="refresh-button" type="button">Refresh</button></div>
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>Target</th><th>Event</th><th>Severity</th><th>Source</th><th>Timestamp</th></tr></thead>
+    <tbody id="events-body"><tr><td colspan="6">Loading…</td></tr></tbody></table></div>
+  </section>
+  <footer>Educational prototype. CVE case-study assessment is not an upstream patch. Decoy access is a signal, not proof of malicious intent.</footer>
+</main>
+<script src="/static/js/dashboard.js"></script>
+</body></html>

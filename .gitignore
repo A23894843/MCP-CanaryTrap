@@ -3,8 +3,3 @@ __pycache__/
 *.py[cod]
 .env
 data/*.db
-
-data/auth.json
-data/.session_secret
-data/simulation-proof.txt
-*.pyc
