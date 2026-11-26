@@ -1,159 +1,161 @@
-# MCP-CanaryTrap v1.3.2
+# MCP-CanaryTrap
 
-## Beginner-friendly dashboard (v1.3.2)
+**A deterministic decoy-injection and evidence platform with a CVE-2026-5029 request-boundary mitigation prototype.**
 
-The dashboard has been redesigned with plain-language navigation, a guided first-use panel, clearer descriptions for tests and results, a lighter high-contrast visual style, and a matching sign-in/setup screen. The advanced gateway and protection settings remain available; they are explicitly described as advanced features.
+MCP-CanaryTrap is an educational defensive security project. It exposes fictional MCP decoys, deterministically flags interaction with them, records security events, and provides a safe demonstration of authentication and request metadata checks relevant to the attack path described by CVE-2026-5029.
 
-**Suggested first run:** open **Try an Example**, run the normal example, then run the warning example, and open **Activity & Findings** to compare the results. A clean result only describes the inputs processed by that test; it is not a guarantee that an entire external system is safe.
-**A deterministic decoy-access research prototype for Model Context Protocol (MCP) server testing, with deployment configuration tooling.**
+## What is included
 
-> Important scope statement: the project now includes real-message monitoring adapters for configured Streamable HTTP and local stdio MCP connections, plus simulation mode. It is a research prototype, not a universal transparent proxy or an industry-validated security product. Validate every target server/client combination before operational use.
+### Phase 1 — Deterministic decoy detection
+- Fictional decoys: `admin_config`, `customer_backup`, `system_secrets`.
+- Exact, case-insensitive matching.
+- Clear `FLAGGED` or `CLEAN` verdicts with a trigger explanation.
+- MCP server tools and a simple MCP stdio client.
+- FastAPI inspection endpoint and event history.
 
-## What it demonstrates
-- MCP SDK learning server/client with tools, resources, a resource template and a prompt.
-- Three fictional decoy categories: high-privilege tool, sensitive-data asset and high-value record.
-- Reproducible per-session decoy placement scaffold.
-- Controlled benign and overreaching scenarios.
-- Examiner-defined custom test builder: configure decoy target names and structured interactions in the dashboard; the backend derives decoy matches and evaluates the same verdict rule without adding a new hardcoded scenario.
-- Timestamped interaction events persisted in SQLite.
-- Deterministic verdict: `CLEAN` with no recorded decoy access, `FLAGGED` with one or more decoy accesses.
-- Evidence event IDs, FastAPI reporting endpoints and a browser dashboard. In production mode, browser users sign in with a dashboard account (created during first-run setup if environment credentials are not configured); HTTP Basic remains available for compatible API clients. `/health` and `/ready` are health endpoints.
-- Automated regression tests and presentation documentation.
-- **Security Center (non-AI/ML):** tenant-scoped allow/deny/monitor policies enforced for supported tool calls, resource reads and prompt gets on HTTP/stdio gateway traffic; maintained MCP inventory; configured-connection reconciliation; posture checks; policy smoke tests; deterministic frequency baselines; cross-server exact-match correlation; unregistered observed gateway connection checks; webhook notifications; compliance-style posture report; role-based API keys; and SHA-256 hash-chained gateway audit entries.
+### Phase 2 — CVE-2026-5029 gateway-control prototype
+- Bearer token authentication.
+- Host allowlist.
+- Optional Origin allowlist validation.
+- Fail-closed behavior if critical configuration is missing.
+- Blocked and accepted decisions are recorded.
+- Examiner page with NVD, CERT Polska, GitHub Advisory and upstream links.
 
-## Quick start
+**Important boundary:** the `/api/cve/guard-check` route demonstrates the control logic in this application. It is not a drop-in patch for the upstream Code Runner MCP server and does not automatically intercept another service's `/mcp` endpoint. For real deployment, put the vulnerable upstream on a private network and route all external MCP traffic through a gateway that invokes equivalent checks before proxying requests. Never expose the upstream port directly.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-python -m pytest -v
-```
+### Unique feature — Canary Evidence Ledger
+Each decoy event and CVE gateway decision creates a canonical JSON record linked to the previous record using SHA-256. `/api/evidence/verify` recomputes the chain and reports whether the stored evidence has changed. This gives an examiner a concrete way to verify audit integrity. It is tamper-evident, not tamper-proof; a production system should anchor hashes in an external immutable store and serialize concurrent writes.
 
-Run the command-line demo:
-
-```bash
-python -m mcp_canarytrap.demo --scenario both
-```
-
-Run the dashboard:
-
-```bash
-python -m mcp_canarytrap.api
-```
-
-The app now defaults to protected mode. Open `http://127.0.0.1:8000`; on first launch, create the administrator account in the browser. Use a unique password of at least 16 characters. API documentation is at `http://127.0.0.1:8000/docs` after sign-in. For a private local development session without login, explicitly set `APP_ENV=development` before starting the app; do not use that mode on a shared or public network. The dashboard has nine navigation views: **Home**, **Run a Test**, **Test History**, **Activity & Findings**, **Try an Example**, **Connect a Server**, **Protection Rules**, **Help & How It Works**, and **Settings & Deployment**. Start with **Try an Example**, then review **Activity & Findings**. The setup page creates an environment file and checklist locally in your browser; it does not deploy until you push the repository and authorize your hosting provider. Advanced server and protection settings are labelled as such.
-
-## Project map
+## Project layout
 
 ```text
-src/mcp_canarytrap/
-├── server.py          # MCP SDK learning server
-├── client.py          # MCP SDK learning client
-├── phase1_design.py   # Decoy taxonomy and placement
-├── events.py          # Interaction event model
-├── harness.py         # Built-in and examiner-defined scenario execution
-├── verdict.py         # Deterministic CLEAN/FLAGGED policy
-├── storage.py         # SQLite persistence
-├── demo.py            # CLI demo
-├── api.py             # FastAPI endpoints and connection setup
-├── gateway_core.py    # Shared JSON-RPC decoy logic and evidence recorder
-├── http_gateway.py    # Streamable HTTP MCP reverse proxy
-├── stdio_proxy.py     # Local stdio MCP process wrapper
-├── security_center.py # Policy, inventory, RBAC, audit, baselines, reports
-└── templates/index.html
-                       # Browser dashboard, setup wizard and Security Center
-tests/
-├── test_phase1.py
-└── test_detection_pipeline.py
-
-docs/                  # Setup, architecture, code walkthrough, test plan,
-                       # threat model, limitations, sources, viva and handoff
+MCP-CanaryTrap/
+├── app/
+│   ├── api/routes.py
+│   ├── core/
+│   │   ├── cve_guard.py
+│   │   ├── decoys.py
+│   │   ├── detector.py
+│   │   └── evidence.py
+│   ├── storage/database.py
+│   ├── main.py
+│   ├── mcp_client.py
+│   └── mcp_server.py
+├── data/                  # SQLite DB is created on first run
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── CVE-2026-5029.md
+│   └── DEMO-GUIDE.md
+├── scripts/
+│   └── verify_project.py
+├── static/css/style.css
+├── static/js/
+├── templates/
+├── .env.example
+├── Dockerfile
+├── render.yaml
+└── requirements.txt
 ```
 
-## Demo expectations
-| Scenario | Expected verdict | Evidence |
-|---|---|---|
-| `benign` | `CLEAN` | 0 decoy event IDs |
-| `overreaching` | `FLAGGED` | 3 decoy event IDs |
+## Run locally
 
-These are outcomes of the scripted simulation, not measured real-world detection rates.
-
-## Documentation order
-1. `docs/00-project-overview.md`
-2. `docs/01-setup-and-run.md`
-3. `docs/02-architecture.md`
-4. `docs/03-code-walkthrough.md`
-5. `docs/04-test-plan-and-results.md`
-6. `docs/05-threat-model-and-safety.md`
-7. `docs/06-limitations-and-real-integration.md`
-8. `docs/07-viva-and-demo-script.md`
-9. `docs/08-sources.md`
-10. `docs/09-team-handoff.md`
-11. `docs/11-multipage-dashboard.md`
-12. `docs/12-deployment-and-configuration.md`
-13. `docs/13-live-gateway.md`
-14. `docs/14-security-center.md`
-
-## Deployment setup
-
-### Local Docker (production-mode access guard)
+Python 3.11+ recommended.
 
 ```bash
+python -m venv .venv
+# Linux/macOS:
+source .venv/bin/activate
+# Windows PowerShell:
+# .venv\Scripts\Activate.ps1
+
+python -m pip install -r requirements.txt
 cp .env.example .env
-# Edit .env and set a unique DASHBOARD_PASSWORD (16+ characters).
-docker compose up --build -d
+# Edit .env and set a long random token.
+uvicorn app.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000`. If dashboard credentials are not configured, create the first administrator in the setup form. The password is stored as a salted scrypt hash in the persistent SQLite database; the setup endpoint becomes unavailable after the first account is created. For a public deployment, configure environment credentials first or complete first-run setup in a controlled window, because the first visitor could otherwise claim the setup. Later visits use the dashboard sign-in form. Existing environment-configured `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` values and HTTP Basic clients remain supported. The service is bound to localhost and persists SQLite data in a named volume. Do not commit `.env`.
+Open:
+- Home: http://127.0.0.1:8000/
+- Dashboard: http://127.0.0.1:8000/dashboard
+- Decoy Lab: http://127.0.0.1:8000/decoy-lab
+- CVE Prototype: http://127.0.0.1:8000/cve-protection
+- Evidence Ledger: http://127.0.0.1:8000/evidence
+- API docs: http://127.0.0.1:8000/docs
 
-### Hosted Render Blueprint
+## CVE demo configuration
 
-A `render.yaml` Blueprint is included. Push the project to GitHub, then use the **Setup & Deploy** dashboard page to prepare the steps and open the Render Blueprint flow. Review the persistent-disk costs before deploying. After deployment, open the service URL and create the first administrator if dashboard credentials were not configured as environment variables. The administrator record is stored in the persistent disk-backed SQLite database. Alternatively, configure both `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` as secret environment variables. See [`docs/12-deployment-and-configuration.md`](docs/12-deployment-and-configuration.md).
+Set `.env` (or your deployment environment):
 
-The Setup & Deploy wizard runs locally in the browser and downloads `.env.production` and a deployment checklist. The Live MCP Gateway form saves non-secret upstream configuration to SQLite or generates a configuration snippet; it does not submit or store bearer-token values. Put secrets into the hosting provider's secret settings. The production dashboard supports a first-run administrator setup form and session-cookie sign-in; environment-configured HTTP Basic authentication remains supported for API clients. This is not enterprise SSO or a security certification.
+```env
+CANARYTRAP_CVE_TOKEN=replace-with-a-long-random-secret
+CANARYTRAP_ALLOWED_HOSTS=127.0.0.1,localhost
+CANARYTRAP_ALLOWED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
+```
 
-## Custom test mode
+Restart the server after changing environment variables. In the CVE page, use the configured token, `localhost:8000` as Host and `http://localhost:8000` as Origin.
 
-The multi-page dashboard supports custom test cases through a structured form on the Custom Test Lab page. Enter a case name and description, add decoy target identifiers one per row, then add one or more observed interactions (operation, target, type and details). The backend—not the browser—calculates whether each interaction matches a configured decoy target (case-insensitive exact match), then calls the same deterministic verdict engine. The `POST /api/custom-test` endpoint exposes the same capability for API clients. The API accepts at most 100 interactions per case.
+Expected outcomes:
+- Missing token → HTTP 401.
+- Wrong token → HTTP 403.
+- Host not allowlisted → HTTP 400.
+- Origin not allowlisted → HTTP 403.
+- Valid token and allowed Host/Origin → HTTP 200.
 
-This avoids adding a new hardcoded branch for every examiner scenario. It is a **structured test builder**, not an AI/NLP interpreter: a free-text description is saved as context, but verdicts are based on the structured interactions and decoy registry. The test remains simulated input; it does not prove that real MCP traffic was observed.
+Do not put a real production secret in screenshots, source control or the examiner demo recording.
 
-## Important research limitation
-The demo harness generates controlled events internally. The new HTTP and stdio gateway adapters observe supported protocol operations and inject synthetic decoys at the configured gateway boundary. The stdio adapter must run alongside a trusted local server; the HTTP adapter uses a dashboard-saved or environment-configured upstream. Actual sandbox isolation, broader protocol edge-case testing, independent evaluation, and enterprise identity/database integration remain necessary for a stronger production claim. See `docs/06-limitations-and-real-integration.md`.
+## Manual verification
 
-## Live MCP monitoring gateway (HTTP + stdio)
+```bash
+python scripts/verify_project.py
+```
 
-The project now includes transport adapters for actual MCP protocol messages:
+The script checks deterministic decoy decisions, the CVE guard outcomes and the evidence-chain integrity using a temporary database. It does not attack or execute code on a vulnerable server.
 
-- **Streamable HTTP:** configure approved upstreams with `CANARYTRAP_HTTP_UPSTREAMS`; connect an MCP client to `/gateway/<connection-id>`.
-- **stdio:** wrap a trusted local MCP server with the `canarytrap-stdio-proxy` command.
-- The gateway injects configured synthetic decoys into supported list responses, intercepts decoy tool/resource/prompt access, records events, and evaluates deterministic verdicts.
-- Use the dashboard's **Live MCP Gateway** page to save and activate non-secret HTTP connection settings, test the MCP initialize handshake, generate configuration snippets, and create local stdio wrapper commands. Secret values are not sent through that form.
+## MCP stdio demonstration
 
-See [`docs/13-live-gateway.md`](docs/13-live-gateway.md) for setup, example environment variables, security boundaries, and known limitations.
+```bash
+python app/mcp_client.py
+```
 
-**Scope warning:** this is a research prototype with real transport adapters, not a certified universal MCP firewall. Validate each target server/client combination, deployment security, network controls, storage, and protocol edge cases before using it in a company environment.
+The client starts `app/mcp_server.py` as a child process, initializes an MCP session, lists tools and lets you call a tool. Try `weather_search` (normal) and `system_secrets` (decoy). The decoy call is flagged and written to SQLite.
 
+## Deployment notes
 
+- Render configuration is included as a starting point.
+- SQLite on ephemeral hosting may be reset on redeploy/restart. Use a persistent disk or managed PostgreSQL for durable deployment.
+- Configure a strong secret in Render environment variables; never commit `.env`.
+- For multi-worker production, replace the SQLite hash-chain writer with a transactional database/append-only event service and serialize chain writes.
+- Bind upstream MCP services to a private interface/network. Do not expose the vulnerable upstream service directly.
 
-## Security Center configuration
+## CVE references
 
-Review `.env.example` and `docs/14-security-center.md` before deployment. Configure `CANARYTRAP_RBAC_KEYS` with high-entropy keys and tenant/role assignments, and use HTTPS for remote upstreams and alert webhooks. Private/local upstreams are blocked by default; only set `CANARYTRAP_ALLOW_PRIVATE_UPSTREAMS=true` for explicitly approved internal MCP servers with network egress controls. The dashboard's **Security Center** page exposes the core deterministic controls and reports.
+- [NVD — CVE-2026-5029](https://nvd.nist.gov/vuln/detail/CVE-2026-5029)
+- [CERT Polska advisory](https://cert.pl/en/posts/2026/05/CVE-2026-5029/)
+- [GitHub Security Advisory GHSA-jv4w-6p47-rhcx](https://github.com/advisories/GHSA-jv4w-6p47-rhcx)
+- [Affected upstream project](https://github.com/formulahendry/mcp-server-code-runner)
 
-**Scope warning:** inventory and shadow-connection checks can only see configured connections and activity passing through this gateway. The product does not discover every MCP server on a machine/network, and its compliance report is not a certification. Hash-chained SQLite audit data is tamper-evident, not immutable. Webhook delivery is best-effort and payloads are not signed.
+## Authorship and presentation
 
+Present this as your implementation and explain the design decisions you understand and can defend. The distinct project contribution to highlight is the **Canary Evidence Ledger**, alongside deterministic decoy detection and the CVE request-boundary demonstration. Credit the public CVE advisory sources and any third-party libraries. Do not claim the vulnerability is fully fixed by this prototype.
 
-## CVE-2026-5029 mitigation demonstrator
+## GitHub commit checklist
 
-This repository includes an **opt-in gateway-side mitigation profile** for the unauthenticated HTTP MCP attack path described in CVE-2026-5029. It enforces Host and Origin allowlists and requires a valid tenant API key before an MCP request is parsed or forwarded.
+Before pushing:
+1. Review `.env.example` and keep your real `.env` file untracked.
+2. Confirm `data/canarytrap.db` is not committed; the database is created at runtime.
+3. Run `python scripts/verify_project.py`.
+4. Run `python -m compileall app scripts`.
+5. Commit the source, documentation, templates, static assets, and deployment files.
 
-- **Examiner dashboard page:** `/cve-2026-5029` (sign in to the dashboard first)
-- **Technical implementation and setup:** [`docs/CVE-2026-5029-MITIGATION.md`](docs/CVE-2026-5029-MITIGATION.md)
-- **NIST NVD:** https://nvd.nist.gov/vuln/detail/CVE-2026-5029
-- **CERT Polska advisory:** https://cert.pl/en/posts/2026/05/CVE-2026-5029/
-- **GitHub Security Advisory:** https://github.com/advisories/GHSA-jv4w-6p47-rhcx
-- **Affected upstream:** https://github.com/formulahendry/mcp-server-code-runner
+Suggested first commit:
 
-Important: this is an independent compensating-control prototype, not an upstream patch. Keep the affected upstream MCP endpoint private and expose only the authenticated CanaryTrap gateway. Enable the profile only after setting `CANARYTRAP_CVE_ALLOWED_HOSTS`, `CANARYTRAP_CVE_ALLOWED_ORIGINS`, and `CANARYTRAP_RBAC_KEYS`.
+```bash
+git init
+git add .
+git commit -m "Initial release: MCP-CanaryTrap integrated prototype"
+git branch -M main
+git remote add origin https://github.com/<your-username>/<your-repository>.git
+git push -u origin main
+```
+
+Replace the remote URL with your actual GitHub repository URL.
