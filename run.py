@@ -1,32 +1,33 @@
-"""Single-command launcher for the complete MCP-CanaryTrap assessment suite."""
+"""MCP-CanaryTrap integrated web-service entry point for Render and local use."""
+
 import os
-import sys
-import subprocess
-from pathlib import Path
+import uvicorn
 
-ROOT = Path(__file__).resolve().parent
-os.chdir(ROOT)
 
-def main():
-    # Keep imports and subprocesses rooted at this project directory.
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT) + os.pathsep + env.get("PYTHONPATH", "")
-    try:
-        import uvicorn
-    except ImportError:
-        print("Dependencies are missing. Install once with:")
-        print("  python -m pip install -r requirements.txt")
-        raise SystemExit(1)
+def main() -> None:
+    # Render supplies PORT; local execution defaults to 8000.
+    host = "0.0.0.0"
+    port = int(os.environ.get("PORT", "8000"))
 
-    print("=" * 66)
-    print(" MCP-CanaryTrap | Integrated Security & Vulnerability Assessment")
-    print("=" * 66)
-    print("Starting the integrated dashboard and all assessment modules...")
-    print("Dashboard : http://127.0.0.1:8000/dashboard")
-    print("API docs  : http://127.0.0.1:8000/docs")
-    print("Stop      : Ctrl+C")
-    print("-" * 66)
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=False)
+    print("=" * 65)
+    print("MCP-CanaryTrap")
+    print("Integrated Security & Vulnerability Assessment Suite")
+    print("=" * 65)
+    print(f"Listening on {host}:{port}")
+    print(f"Dashboard: http://127.0.0.1:{port}/dashboard")
+    print(f"API docs : http://127.0.0.1:{port}/docs")
+    print("=" * 65)
+
+    uvicorn.run(
+        "app.main:app",
+        host=host,
+        port=port,
+        reload=False,
+        proxy_headers=True,
+        forwarded_allow_ips="*",
+        log_level="info",
+    )
+
 
 if __name__ == "__main__":
     main()
